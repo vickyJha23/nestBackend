@@ -1,0 +1,72 @@
+blog-backend/
+│
+├── src/
+│   ├── app.module.ts                 # Root module (entry point)
+│   ├── main.ts                       # Application bootstrap file
+│   │
+│   ├── common/                       # Common reusable utilities
+│   │   ├── filters/                  # Exception filters (custom error handling)
+│   │   ├── interceptors/             # Logging, transformation interceptors
+│   │   ├── pipes/                    # Validation / transformation pipes
+│   │   └── guards/                   # Auth guards / role-based guards
+│   │
+│   ├── config/                       # Configuration files (env, db, etc.)
+│   │   ├── database.config.ts
+│   │   └── jwt.config.ts
+│   │
+│   ├── modules/                      # Main feature modules
+│   │   ├── auth/
+│   │   │   ├── auth.module.ts
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── login.dto.ts
+│   │   │   │   └── register.dto.ts
+│   │   │   └── strategies/
+│   │   │       ├── jwt.strategy.ts
+│   │   │       └── local.strategy.ts
+│   │   │
+│   │   ├── users/
+│   │   │   ├── users.module.ts
+│   │   │   ├── users.controller.ts
+│   │   │   ├── users.service.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── create-user.dto.ts
+│   │   │   │   └── update-user.dto.ts
+│   │   │   └── entities/
+│   │   │       └── user.entity.ts
+│   │   │
+│   │   ├── posts/
+│   │   │   ├── posts.module.ts
+│   │   │   ├── posts.controller.ts
+│   │   │   ├── posts.service.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── create-post.dto.ts
+│   │   │   │   └── update-post.dto.ts
+│   │   │   └── entities/
+│   │   │       └── post.entity.ts
+│   │   │
+│   │   └── comments/
+│   │       ├── comments.module.ts
+│   │       ├── comments.controller.ts
+│   │       ├── comments.service.ts
+│   │       ├── dto/
+│   │       │   ├── create-comment.dto.ts
+│   │       │   └── update-comment.dto.ts
+│   │       └── entities/
+│   │           └── comment.entity.ts
+│   │
+│   └── database/
+│       ├── database.module.ts
+│       ├── database.service.ts
+│       └── entities/
+│           ├── index.ts
+│           ├── user.entity.ts
+│           ├── post.entity.ts
+│           └── comment.entity.ts
+│
+├── .env                              # Environment variables
+├── nest-cli.json                     # Nest CLI configuration
+├── package.json
+├── tsconfig.json
+└── README.md

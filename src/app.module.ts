@@ -7,13 +7,14 @@ import jwtConfig from "./configs/jwt.config";
 import {PostModule}from "./modules/posts/posts.module";
 import { CommentModule } from "./modules/comments/comments.module";
 import { UserModule } from "./modules/users/user.module";
+import appConfig from "./configs/app.config";
 
 
 @Module({
   imports: [
      ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig],
+      load: [databaseConfig, jwtConfig, appConfig],
     }),
     DatabaseModule,
     AuthModule,

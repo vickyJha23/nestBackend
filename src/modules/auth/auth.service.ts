@@ -13,9 +13,8 @@ import UserService from "../users/user.service";
 @Injectable()
 export default class AuthService {
      constructor(@InjectModel(User.name) private userModel: Model<UserDocument>, private jwtService: JwtService, private configService: ConfigService, private userService: UserService) { }
-
      async register (userData: UserDto) {
-               
+            const user =    
       }
 
 

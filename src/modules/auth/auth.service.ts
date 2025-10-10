@@ -1,73 +1,91 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import UserDto from "./dto/userRegister.dto";
-import bcrypt from 'bcrypt';
-import { User } from "../../database/entities/user.entity";
+import UserRepository from "src/database/repositories/User.repository"
+import bcrypt from "bcrypt";
 import { UserDocument } from "./auth.type";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import UserService from "../users/user.service";
+import { Injectable } from "@nestjs/common";
+import type { Request, Response } from "express";
+import { use } from "passport";
 
+export interface AuthRequest extends Request {     
+     user: UserDocument
+}
+
+export interface TokenPayload {
+     email: string;
+     sub: string;
+     role: string;
+}
 
 @Injectable()
-export default class AuthService {
-     constructor(@InjectModel(User.name) private userModel: Model<UserDocument>, private jwtService: JwtService, private configService: ConfigService, private userService: UserService) { }
-     async register (userData: UserDto) {
-            const user =    
-      }
+export class AuthService {
+      constructor(private userRepository: UserRepository, private jwtService: JwtService, private configService: ConfigService) {}
+      
+      
+     async signIn(req: AuthRequest, res: Response) {
+           let user = req.user;
+           console.log(user);
+           const payload = {email: user.email, sub: user._id, role: user.role} as TokenPayload;
+           const accessToken = this.generateAccessToken(payload);
+           const refreshToken = this.generateRefreshToken(payload);
+               console.log("Access Token:", accessToken);
+               console.log("Refresh Token:", refreshToken);
 
 
+           res.cookie("accessToken", accessToken, {
+                 httpOnly: true,
+                 secure: false,
+                sameSite: 'lax',
+                maxAge: this.configService.get<number>("jwt.accessTokenCookieExpiresIn")!,
 
-     // async persistUserToDB(userData: UserDto) {
-     //      userData.password = await this.hashPassword(userData.password.toString());
-     //      const newUser = await this.userModel.create(userData);
-     //      return newUser;
-     // }
-     // async findUserByEmail(email: string) {
-     //      return await this.userModel.findOne({ email });
-     // }
-
-     // // this function hashes the password using bcrypt
-     // async hashPassword(password: string): Promise<string> {
-     //      const SALT_ROUNDS = 10;
-     //      return await bcrypt.hash(password, SALT_ROUNDS);
-     // }
-
-     // // async comparePassword(password: string, hashPassword: string): Promise<boolean> {
-     // //      const isValid = await bcrypt.compare(password, hashPassword);
-     // //      return isValid
-     // // }
-
-     async validateUser(userName: string, password: string) {
-          const user = await this.userService.findUserByUsername(userName);
-          if (user) {
-               const isPasswordValid = bcrypt.compareSync(password, user?.password)
-               return isPasswordValid ? user : null;
-          };
-
+           })
+           res.cookie("refreshToken", refreshToken, {
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'lax',
+                    maxAge: this.configService.get<number>("jwt.refreshTokenCookieExpiresIn")!,
+           })
+          user.password = "";
+          return{
+                    message: "User logged in successfully",
+                    user: user,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+          }
+          
      }
-     generateAccessToken(payload: { userId: string, email: string, role: string }): string {
-          console.log(payload);
+
+
+
+     async validateUser (email: string, password: string): Promise<any> {
+            const user = await this.userRepository.findByEmail(email);
+           if(user) {
+                  const isPasswordVald = await bcrypt.compare(password, user.password);
+                  return isPasswordVald ? user : null;     
+            }
+        }
+
+       generateAccessToken(payload: TokenPayload): string{
+          // console.log(payload);
           const accessToken = this.jwtService.sign(payload);
-          console.log(accessToken);
-          return accessToken;
-     }
+           console.log("Generated Access Token:", accessToken);  
+          return accessToken; 
+       } 
 
-     generateRefreshToken(payload: { userId: string }): string {
-          const secret = this.configService.get<string>("jwt.jwtRefreshSecret");
-          // console.log(this.configService);
-          // console.log("secret", secret);
-          const expiry = this.configService.get<string>("jwt.refreshTokenExpiryTime")
-          const refreshToken = this.jwtService.sign(payload, {
-               secret: secret,
-               expiresIn: expiry
+     generateRefreshToken(payload: TokenPayload): string{
+          console.log(payload);
+          const refreskToken = this.jwtService.sign(payload, {
+                   secret: this.configService.get<string>("jwt.jwtRefreshSecret"),
+                    expiresIn: this.configService.get<string>("jwt.refreshTokenExpiryTime") 
           })
-          console.log(refreshToken);
-          return refreshToken;
+          console.log("Generated Refresh Token:", refreskToken);
+          return refreskToken;
      }
 
 
+     
+} 
 
-
+function Injectablez(): (target: typeof AuthService) => void | typeof AuthService {
+     throw new Error("Function not implemented.")
 }

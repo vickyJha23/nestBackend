@@ -21,6 +21,20 @@ export default class UserRepository {
             const users = await this.userModel.find().exec();
             return users;
     }
+
+    async findById(id: string):Promise<UserDocument | null> {
+        return this.userModel.findById(id).select("-password").exec();
+    }
+
+    async updateUserData(id: string, updatedData:any):Promise<UserDocument | null>{
+          return await this.userModel.findByIdAndUpdate(id, updatedData, {
+              new: true
+          }).exec(); 
+    }
+
+    async deleteUserFromTheDatabase (id:string):Promise<UserDocument | null> {
+           return await this.userModel.findByIdAndDelete(id);
+    }
     
 
 

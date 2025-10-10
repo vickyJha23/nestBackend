@@ -8,7 +8,6 @@ import {PostModule}from "./modules/posts/posts.module";
 import { CommentModule } from "./modules/comments/comments.module";
 import { UserModule } from "./modules/users/user.module";
 import appConfig from "./configs/app.config";
-import { JwtModule } from "@nestjs/jwt";
 
 
 @Module({

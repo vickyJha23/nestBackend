@@ -3,7 +3,9 @@ import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 
 @Schema()
 export class User {
-    [x: string]: any;
+    toObject() {
+          throw new Error("Method not implemented.");
+    }
     @Prop({required: true}) 
     userName: string;
     @Prop({

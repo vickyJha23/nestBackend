@@ -8,8 +8,13 @@ import type { Request, Response } from "express";
 import { use } from "passport";
 
 export interface AuthRequest extends Request {     
-     user: UserDocument
-}
+     user: {
+          userId: string,
+          email: string,
+          role: string
+      } 
+
+  }
 
 export interface TokenPayload {
      email: string;
@@ -22,9 +27,9 @@ export class AuthService {
       constructor(private userRepository: UserRepository, private jwtService: JwtService, private configService: ConfigService) {}
       
       
-     async signIn(req: AuthRequest, res: Response) {
-           let user = req.user;
-           console.log(user);
+     async signIn(req: Request, res: Response) {
+           let user = req.body;
+           console.log("signIn: ", user);
            const payload = {email: user.email, sub: user._id, role: user.role} as TokenPayload;
            const accessToken = this.generateAccessToken(payload);
            const refreshToken = this.generateRefreshToken(payload);
@@ -50,7 +55,9 @@ export class AuthService {
                     message: "User logged in successfully",
                     user: user,
                     accessToken: accessToken,
-                    refreshToken: refreshToken
+                    refreshToken: refreshToken,
+                    statusCode: 200,
+                    status: true
           }
           
      }
@@ -66,7 +73,7 @@ export class AuthService {
         }
 
        generateAccessToken(payload: TokenPayload): string{
-          // console.log(payload);
+          console.log(payload);
           const accessToken = this.jwtService.sign(payload);
            console.log("Generated Access Token:", accessToken);  
           return accessToken; 

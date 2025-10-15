@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards, } from "@nestjs/common";
+ import {Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards, } from "@nestjs/common";
 import UserService from "./user.service";
 import CreateUserDto from "./dto/create-user.dto";
 import { AuthGuard } from "@nestjs/passport";
@@ -21,6 +21,7 @@ export default class UserController {
     @UseGuards(AuthGuard("jwt"))
     @Get("profile") 
     async getUserProfile(@Req() req:AuthRequest) {
+         console.log("req", req.user);
          return await this.userService.getProfile(req);
     } 
     

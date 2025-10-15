@@ -3,7 +3,7 @@ import UserController from "./user.controller";
 import UserService from "./user.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { User, UserSchema } from "src/database/entities/user.entity";
-import UserRepository from "src/database/repositories/User.repository";
+import UserRepository from "./User.repository";
 import{ JWTStrategy } from "../auth/strategies/jwt.strategy";
 import { AuthModule } from "../auth/auth.module";
 

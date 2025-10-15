@@ -1,6 +1,6 @@
 import { PostModule } from "src/modules/posts/posts.module";
-import { Post, PostDocument } from "../entities/post.entity";
-import mongoose, { Model, Mongoose } from "mongoose";
+import { Post, PostDocument } from "../../database/entities/post.entity";
+import mongoose, { Model, Mongoose} from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
 
 export class PostRepository {
@@ -14,17 +14,30 @@ export class PostRepository {
         return newPost;
     }
 
-    async getAllPosts(page: string, limit: string, sort: string):Promise <PostDocument []> {
+    async getAllPosts(page: number, limit: number, sort: string):Promise <PostDocument []> {
   const posts = await this.postModel.aggregate([
-  
     {
-      $lookup: {
-        from: 'users',             
-        localField: 'author',      
-        foreignField: '_id',       
-        as: 'author',
-      },
+        $match: {}
     },
+     {
+        $addFields: {
+            authorObjectId: {
+                $toObjectId: "$author"
+            }
+        }
+     },
+
+     {
+    $lookup: {
+      from: "users",
+      let: { authorId: "$authorObjectId" },  // define variable from local document
+      pipeline: [
+        { $match: { $expr: { $eq: ["$_id", "$$authorId"] } } },  // match by _id
+        { $project: { userName: 1, email: 1, role: 1,  _id: 0 } }               // include only these fields
+      ],
+      as: "author"
+    }
+  },
     { $unwind: '$author' },       
 
     {
@@ -35,10 +48,7 @@ export class PostRepository {
         as: 'comments',
       },
     },
-    {
-        $unwind: "$comments"
-    },
-
+    
     {
       $addFields: {
         commentCount: { $size: '$comments' },
@@ -46,18 +56,18 @@ export class PostRepository {
     },
 
     {
-        $skip: (parseInt(page) - 1) * parseInt(limit)
+        $skip: (page - 1) * limit
     },
 
     {
-         $limit: parseInt(limit)
+         $limit: limit
     },
 
     { $sort: {
            order: sort === "asc" ? 1: -1 }
         },
   ]);
-
+   console.log(posts);
   return posts;
 }
 
@@ -94,9 +104,14 @@ async findById(postId:string):Promise <PostDocument | null> {
       }])
       return post [0] || null ;
 }
-async fetchPostByUserId(userId: string):Promise <PostDocument | null> {
-    const post = await this.postModel.findOne({author: userId}); 
-    return post;
+async fetchPostByUserId(userId: string):Promise <PostDocument [] | null> {
+    const posts = await this.postModel.aggregate([{
+         $match: {
+              author: new mongoose.Types.ObjectId(userId)
+         }
+    }]);
+    console.log("userPost", posts); 
+    return posts;
 }
 
 async deletePostById(postId:string): Promise <PostDocument | null> {
@@ -104,8 +119,8 @@ async deletePostById(postId:string): Promise <PostDocument | null> {
     return deletedPost;
 }
 
- async updatePostById(postId: string):Promise <PostDocument | null> {
-        const post = await this.postModel.findByIdAndUpdate(postId);
+ async updatePostById(postId: string, updatedData):Promise <PostDocument | null> {
+        const post = await this.postModel.findByIdAndUpdate(postId, updatedData, {new: true});
         return post;
   }
 

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import {Comment, CommentDocument } from "../entities/comment.entity";
+import {Comment, CommentDocument } from "../../database/entities/comment.entity";
 import { CreateCommentDto } from "src/modules/comments/dto/create-comment.dto";
 
 

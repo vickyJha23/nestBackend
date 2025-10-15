@@ -1,7 +1,6 @@
 import { BadRequestException, Body, ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { UserDocument } from "../auth/auth.type";
 import CreateUserDto from "./dto/create-user.dto";
-import UserRepository from "src/database/repositories/User.repository";
+import UserRepository from "./User.repository";
 import { ConfigService } from "@nestjs/config";
 import bcrypt from "bcrypt";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -11,8 +10,7 @@ import { AuthRequest } from "../auth/auth.service";
 
 @Injectable()
 export default class UserService {
-      constructor(private userRepository: UserRepository, private configService: ConfigService) {}
-      
+      constructor(private userRepository: UserRepository, private configService: ConfigService) {}      
       async createUserInTheDataBase(@Body() userDto: CreateUserDto) {
              const {email, password} = userDto;
             //  console.log(userDto);
@@ -35,7 +33,6 @@ export default class UserService {
                    throw new InternalServerErrorException("Something went wrong");
              } 
       
-            
              return {
                    message: "User registered successfully",
                    user: user,
@@ -55,6 +52,7 @@ export default class UserService {
 
       async getProfile(req: AuthRequest) {
              const userId = req.user.userId;
+             console.log("userId", userId);
              const user = await this.userRepository.findById(userId);
              if(!user) {
                   throw new BadRequestException("No such user exist");

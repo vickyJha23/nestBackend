@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, InternalServerErrorException, UseGuards } from "@nestjs/common";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
-import { PostRepository } from "src/database/repositories/Post.repository";
+import { PostRepository } from "./Post.repository";
 import { CreatePostDto } from "./dto/create-post.dto";
-import mongoose, { Mongoose, Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { AuthGuard } from "@nestjs/passport";
 import { UpdatePostDto } from "./dto/update-post.dto";
 
@@ -40,7 +40,8 @@ export class PostService {
     }
 
     async fetchAllPosts(page: string, limit: string, sort: string) {
-        const posts = await this.postRepository.getAllPosts(page, limit, sort);
+        const posts = await this.postRepository.getAllPosts(parseInt(page), parseInt(limit), sort = "asc");
+        console.log(posts);
         if (posts.length === 0) {
             throw new BadRequestException("No Post exists");
         }
@@ -64,6 +65,7 @@ export class PostService {
     }
 
     async fetchPostByUserId(userId: string) {
+        console.log(userId);
         const post = await this.postRepository.fetchPostByUserId(userId);
         if (!post) {
             throw new BadRequestException("No post is found with this id");
@@ -94,7 +96,7 @@ export class PostService {
         if (!postId) {
             throw new BadRequestException("post id required");
         }
-        const post = this.postRepository.updatePostById(postId)
+        const post = this.postRepository.updatePostById(postId, updatedData)
         if (!post) {
             throw new BadRequestException("No post exist with this id");
         }

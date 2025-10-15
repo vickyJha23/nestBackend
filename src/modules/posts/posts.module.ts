@@ -6,7 +6,7 @@ import { PostService } from "./posts.service";
 import { AuthModule } from "../auth/auth.module";
 import { UserModule } from "../users/user.module";
 import { CloudinaryModule } from "src/cloudinary/cloudinary.module";
-import { PostRepository } from "src/database/repositories/Post.repository";
+import { PostRepository } from "./Post.repository";
 import { JWTStrategy } from "../auth/strategies/jwt.strategy";
 
 

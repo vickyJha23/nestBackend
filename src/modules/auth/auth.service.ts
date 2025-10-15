@@ -1,11 +1,10 @@
-import UserRepository from "src/database/repositories/User.repository"
+import UserRepository from "../users/User.repository";
 import bcrypt from "bcrypt";
 import { UserDocument } from "./auth.type";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { Injectable } from "@nestjs/common";
 import type { Request, Response } from "express";
-import { use } from "passport";
 
 export interface AuthRequest extends Request {     
      user: {
@@ -28,32 +27,33 @@ export class AuthService {
       
       
      async signIn(req: Request, res: Response) {
-           let user = req.body;
-           console.log("signIn: ", user);
-           const payload = {email: user.email, sub: user._id, role: user.role} as TokenPayload;
+           let u = req.user as UserDocument;
+          //  console.log("user", u);
+          //  console.log("signIn: ", user);
+           const payload = {email: u.email, sub: u._id, role: u.role} as TokenPayload;
            const accessToken = this.generateAccessToken(payload);
            const refreshToken = this.generateRefreshToken(payload);
-               console.log("Access Token:", accessToken);
-               console.log("Refresh Token:", refreshToken);
+               // console.log("Access Token:", accessToken);
+               // console.log("Refresh Token:", refreshToken);
 
 
            res.cookie("accessToken", accessToken, {
                  httpOnly: true,
                  secure: false,
-                sameSite: 'lax',
-                maxAge: this.configService.get<number>("jwt.accessTokenCookieExpiresIn")!,
+                 sameSite: 'lax',
+               //    maxAge: this.configService.get<number>("jwt.accessTokenCookieExpiresIn")!,
 
            })
            res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
                     secure: false,
                     sameSite: 'lax',
-                    maxAge: this.configService.get<number>("jwt.refreshTokenCookieExpiresIn")!,
+                    // maxAge: this.configService.get<number>("jwt.refreshTokenCookieExpiresIn")!,
            })
-          user.password = "";
+          u.password = "";
           return{
                     message: "User logged in successfully",
-                    user: user,
+                    user: u,
                     accessToken: accessToken,
                     refreshToken: refreshToken,
                     statusCode: 200,
@@ -61,9 +61,7 @@ export class AuthService {
           }
           
      }
-
-
-
+          
      async validateUser (email: string, password: string): Promise<any> {
             const user = await this.userRepository.findByEmail(email);
            if(user) {

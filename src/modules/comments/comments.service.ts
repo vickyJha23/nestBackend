@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { CommentRepository } from "src/database/repositories/Comment.repository";
+import { CommentRepository } from "./Comment.repository";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 
 @Injectable()

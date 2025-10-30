@@ -52,7 +52,7 @@ export default class UserService {
 
       async getProfile(req: AuthRequest) {
              const userId = req.user.userId;
-             console.log("userId", userId);
+             console.log("userId get user", userId);
              const user = await this.userRepository.findById(userId);
              if(!user) {
                   throw new BadRequestException("No such user exist");

@@ -3,7 +3,6 @@ import { CloudinaryService } from "./cloudinary.service";
 import {v2 as cloudinary} from "cloudinary";
 import { ConfigService } from "@nestjs/config";
 
-const configService = new ConfigService();
 
 
 @Module({
@@ -20,4 +19,3 @@ export class CloudinaryModule {
              });
       }
 }
-console.log(configService.get<string>('salt.cloudinaryName'));

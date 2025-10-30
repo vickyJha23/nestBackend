@@ -17,8 +17,9 @@ export class PostController {
      @Post("upload")
      @UseInterceptors(FileInterceptor('file', multerOptions))
     async createPostHandler(@Body() postDto:CreatePostDto, @UploadedFile() file: Express.Multer.File, @Req() req:AuthRequest) {        
-        return await this.postService.createPost(postDto, new mongoose.Types.ObjectId(req.user.userId), file);
-    }
+        console.log(postDto, file);
+         return await this.postService.createPost(postDto, new mongoose.Types.ObjectId(req.user.userId), file);
+          }
 
     @UseGuards(AuthGuard("jwt"))
     @Get("all-posts")
@@ -33,7 +34,7 @@ export class PostController {
              return this.postService.fetchPostById(postId);
       }
 
-    //   @UseGuards(AuthGuard("jwt"))
+      @UseGuards(AuthGuard("jwt"))
       @Get("user-post/ :userId")
       async getPostByUserId(@Param("userId") userId: string) {
             console.log(userId);

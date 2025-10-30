@@ -76,18 +76,43 @@ async findById(postId:string):Promise <PostDocument | null> {
            $match: {
               _id: new mongoose.Types.ObjectId(postId)
            }
-
-      }, {
+      },
+       {
+          $addFields: {
+               authorObjectId: {
+                   $toObjectId : "$author"
+               }          
+          }
+       }, 
+        {
            $lookup: {
                 from: "users",
-                localField: "author",
-                foreignField: "_id",
-                as: "user"
+                let: {
+                    authorId: "$authorObjectId" 
+                },
+                pipeline: [
+                     {
+                        $match: {
+                            $expr: {
+                                $eq: ["$_id", "$$authorId"]
+                            }
+                        }
+                     }, {
+                         $project: {
+                             userName: 1,
+                             email: 1,
+                         }
+                     }
 
-           }
-      }, {
-             $unwind: "$user"
-      }, {
+                ],
+                as: "author"
+        }
+
+      }, 
+      {
+             $unwind: "$author"
+      }, 
+      {
           $lookup:{
                from: "comments",
                localField: "_id",
@@ -100,10 +125,10 @@ async findById(postId:string):Promise <PostDocument | null> {
                commentCount: {
                    $size: "$comments"
                }
-           }
-      }])
+           }}
+      ])
       return post [0] || null ;
-}
+ }
 async fetchPostByUserId(userId: string):Promise <PostDocument [] | null> {
     const posts = await this.postModel.aggregate([{
          $match: {

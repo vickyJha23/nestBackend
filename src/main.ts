@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/filters/error.filter';
 import {ValidationPipe } from '@nestjs/common';
+import { ResponseInterceptor } from './modules/common/interceptors/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,7 +10,8 @@ async function bootstrap() {
   origin: 'http://localhost:3000', 
   credentials: true,             
 });
-  app.useGlobalFilters(new AllExceptionsFilter());
+ app.useGlobalInterceptors(
+  new ResponseInterceptor())
   app.useGlobalPipes(new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,

@@ -1,17 +1,30 @@
-import { Body, Controller, Post, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards, UseInterceptors } from "@nestjs/common";
 import { CommentService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { AuthGuard } from "@nestjs/passport";
+import type { AuthRequest } from "../auth/auth.service";
+import { ErrorInterceptors } from "../common/interceptors/error.interceptor";
 
 
+@UseGuards(AuthGuard("jwt"))
 @Controller("comments")
 export class CommentController {
       constructor(private readonly commentService: CommentService) {}
    
-    //   @UseGuards(AuthGuard("jwt"))
+      
       @Post("add-comment")
-       async addComment(@Body() commentDto: CreateCommentDto) {
-            return this.commentService.createComment(commentDto)
+       async addComment(@Query("postId") postId:string, @Body() commentDto: CreateCommentDto, @Req() req: AuthRequest) {
+            console.log("commentDto", commentDto, postId);
+            return await this.commentService.createComment(commentDto, postId, req)
        }
+
+
+       @UseInterceptors(ErrorInterceptors)
+       @Get(":postId")
+        async getCommentsById(@Param("postId") postId:string) {
+            return await this.commentService.getComments(postId);
+        }
+
+
 
 }

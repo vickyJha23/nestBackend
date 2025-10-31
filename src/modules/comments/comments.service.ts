@@ -1,6 +1,8 @@
 import { ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { CommentRepository } from "./Comment.repository";
 import { CreateCommentDto } from "./dto/create-comment.dto";
+import { AuthRequest } from "../auth/auth.service";
+import { Comment } from "src/database/entities/comment.entity";
 
 @Injectable()
 
@@ -8,14 +10,15 @@ export class CommentService {
         constructor (private commentRepository: CommentRepository) {}
 
     
-        async createComment(commentDto: CreateCommentDto) {
-             const isCommentExistForTheSameUser = await this.commentRepository.findCommentByUserById(commentDto.author);
+        async createComment(commentDto: CreateCommentDto, postId:string, req:AuthRequest) {
+             const isCommentExistForTheSameUser = await this.commentRepository.findCommentByUserById(req.user.userId);
              if(isCommentExistForTheSameUser) {
                   throw new ConflictException("You have already made a comment here");
              } 
-            const comment = await this.commentRepository.create(commentDto);
+             
+            const comment = await this.commentRepository.create(commentDto, postId, req.user.userId);
              if(!comment) {
-                  throw new InternalServerErrorException("Something went wrong");
+                  throw new InternalServerErrorException("Something went wrong while making comment");
              }          
              return {
                     message: "Commented successfully",
@@ -24,5 +27,11 @@ export class CommentService {
                     statusCode: 201
              }
             
+        }
+
+        // get comments 
+
+        async getComments(postId:string) {
+             const comments = await this.commentRepository.getComments(postId); 
         }
 }

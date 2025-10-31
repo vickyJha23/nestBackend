@@ -9,10 +9,8 @@ export type CommentDocument =  Comment & Document;
 export class Comment  {
  @Prop({ type: Types.ObjectId, ref: 'Post', required: true })
   postId: Types.ObjectId;
-
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   author: Types.ObjectId;
-
   @Prop({ required: true })
    content: string;
 }

@@ -4,6 +4,8 @@ import CreateUserDto from "./dto/create-user.dto";
 import { AuthGuard } from "@nestjs/passport";
 import type { AuthRequest } from "../auth/auth.service";
 
+
+@UseGuards(AuthGuard("jwt"))
 @Controller("users")
 export default class UserController {
     constructor (private readonly userService: UserService) {}
@@ -18,7 +20,6 @@ export default class UserController {
           return await this.userService.getAllUsersFromTheDataBase();       
     }
 
-    @UseGuards(AuthGuard("jwt"))
     @Get("profile") 
     async getUserProfile(@Req() req:AuthRequest) {
          return await this.userService.getProfile(req);
@@ -39,7 +40,6 @@ export default class UserController {
            return await this.userService.removeUser(id);
      }
 
-     @UseGuards(AuthGuard("jwt"))
      @Put("change-password")
      async handlePasswordChange(@Req() req:AuthRequest, newPassword:string) {
          return await this.userService.changeUserPassword(req, newPassword);

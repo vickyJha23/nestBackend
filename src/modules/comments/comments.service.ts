@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CommentRepository } from "./Comment.repository";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { AuthRequest } from "../auth/auth.service";
@@ -21,7 +21,7 @@ export class CommentService {
                   throw new InternalServerErrorException("Something went wrong while making comment");
              }          
              return {
-                    message: "Commented successfully",
+                    message: "Commented created successfully",
                     comment,
                     status: true,
                     statusCode: 201
@@ -32,6 +32,20 @@ export class CommentService {
         // get comments 
 
         async getComments(postId:string) {
-             const comments = await this.commentRepository.getComments(postId); 
+             try {
+             const commentsData = await this.commentRepository.getComments(postId);       
+             if(commentsData.comments.length == 0) {
+                  throw new NotFoundException("No comments exist on this product"); 
+             }
+             return {
+                  success: true,
+                  commentsData,
+                  message: "Comment fetched successfully",
+                  statusCode: 200
+             }
+               
+              } catch (error) {
+                  return error;   
+              }
         }
 }

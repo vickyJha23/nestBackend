@@ -3,7 +3,6 @@ import { CommentService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { AuthGuard } from "@nestjs/passport";
 import type { AuthRequest } from "../auth/auth.service";
-import { ErrorInterceptors } from "../common/interceptors/error.interceptor";
 
 
 @UseGuards(AuthGuard("jwt"))
@@ -19,7 +18,6 @@ export class CommentController {
        }
 
 
-       @UseInterceptors(ErrorInterceptors)
        @Get(":postId")
         async getCommentsById(@Param("postId") postId:string) {
             return await this.commentService.getComments(postId);

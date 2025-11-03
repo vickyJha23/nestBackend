@@ -65,10 +65,10 @@ export class PostService {
     }
 
     async fetchPostByUserId(userId: string) {
-        console.log(userId);
+        console.log("userId", userId);
         const post = await this.postRepository.fetchPostByUserId(userId);
         if (!post) {
-            throw new BadRequestException("No post is found with this id");
+            throw new BadRequestException("No p ost is found with this id");
         }
         return {
             message: "post fetched successfully",

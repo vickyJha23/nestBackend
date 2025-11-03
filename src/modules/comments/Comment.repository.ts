@@ -5,7 +5,6 @@ import {Comment, CommentDocument } from "../../database/entities/comment.entity"
 import { CreateCommentDto } from "src/modules/comments/dto/create-comment.dto";
 
 
-
 @Injectable()
 export class CommentRepository {
      constructor(@InjectModel(Comment.name) private commentModel: Model<CommentDocument>) {} 
@@ -13,13 +12,13 @@ export class CommentRepository {
                 return await this.commentModel.create({...commentDto, postId, author});
       }
 
-
-      async  getComments (postId: string): Promise <Comment [] | []> {
-            const comments = await this.commentModel.aggregate(
-              [{
+      async  getComments (postId: string): Promise <{totalComments: number,  comments: Comment [] }> {   
+        const comments = await this.commentModel.aggregate(
+              [
+                {
 
                  $match: {
-                     postId: new mongoose.Types.ObjectId(postId)
+                     postId: postId
                  }
               }, 
             
@@ -27,7 +26,9 @@ export class CommentRepository {
                   $lookup: {
                      from: "users",
                      let: {
-                         authortId: "$author"
+                         authorId:  {
+                              $toObjectId: "$author"
+                         }
                      },
                      pipeline: [{
                          $match: {
@@ -46,25 +47,25 @@ export class CommentRepository {
                   }
               },
 
-              {
-                  $unwind: "$author"
-              },
-              
-              {
-                  $group: {
-                     _id: null,
-                      totalComments: {
-                          $sum : 1
-                      },
-                      comments: {
-                        $push: "$$ROOT"
-                      }
-                  }
-              }
+            {
+                $unwind: "$author"
+            },
+            
+            {
+                $group: {
+                   _id: null,
+                    totalComments: {
+                        $sum : 1
+                    },
+                    comments: {
+                      $push: "$$ROOT"
+                    }
+                }
+            },
 
             ]
-            )
-            return comments;
+            );
+            return comments [0] || {totalComments: 0, comments: []};
       }
 
       async findCommentByUserById(userId:string):Promise <CommentDocument | null> {

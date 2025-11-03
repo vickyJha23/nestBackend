@@ -28,27 +28,22 @@ export class AuthService {
       
      async signIn(req: Request, res: Response) {
            let u = req.user as UserDocument;
-          //  console.log("user", u);
-          //  console.log("signIn: ", user);
            const payload = {email: u.email, sub: u._id, role: u.role} as TokenPayload;
            const accessToken = this.generateAccessToken(payload);
            const refreshToken = this.generateRefreshToken(payload);
-               // console.log("Access Token:", accessToken);
-               // console.log("Refresh Token:", refreshToken);
-
-
+     
            res.cookie("accessToken", accessToken, {
                  httpOnly: true,
                  secure: false,
                  sameSite: 'lax',
-               //    maxAge: this.configService.get<number>("jwt.accessTokenCookieExpiresIn")!,
+                  maxAge: this.configService.get<number>("jwt.accessTokenCookieExpiresIn")!,
 
            })
            res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
                     secure: false,
                     sameSite: 'lax',
-                    // maxAge: this.configService.get<number>("jwt.refreshTokenCookieExpiresIn")!,
+                    maxAge: this.configService.get<number>("jwt.refreshTokenCookieExpiresIn")!,
            })
           u.password = "";
           return{
@@ -61,6 +56,27 @@ export class AuthService {
           }
           
      }
+
+
+     async logout (res: Response)  {
+           res.clearCookie("accessToken", {
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'lax',
+           })
+           res.clearCookie("refreshToken", {
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'lax',
+           })                
+
+           return {
+                   status: true,
+                   statusCode: 200,
+                   message: "user logged out successfully",
+                   data: {}
+           }
+     }
           
      async validateUser (email: string, password: string): Promise<any> {
             const user = await this.userRepository.findByEmail(email);
@@ -70,7 +86,9 @@ export class AuthService {
             }
         }
 
-       generateAccessToken(payload: TokenPayload): string{
+ 
+
+     generateAccessToken(payload: TokenPayload): string{
           console.log(payload);
           const accessToken = this.jwtService.sign(payload);
            console.log("Generated Access Token:", accessToken);  

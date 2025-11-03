@@ -41,7 +41,7 @@ export default class UserService {
              }       
 
       }
-
+      
       async getAllUsersFromTheDataBase(){
             const users = await this.userRepository.findAllUsers();
             if(users.length === 0) {

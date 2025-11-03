@@ -15,59 +15,69 @@ export class PostRepository {
     }
 
     async getAllPosts(page: number, limit: number, sort: string):Promise <PostDocument []> {
-  const posts = await this.postModel.aggregate([
-    {
-        $match: {}
-    },
-     {
-        $addFields: {
-            authorObjectId: {
-                $toObjectId: "$author"
-            }
-        }
-     },
-
-     {
+ const posts = await this.postModel.aggregate([
+  {
+    $match: {}
+  },
+  {
+    $addFields: {
+      authorObjectId: { $toObjectId: "$author" }
+    }
+  },
+  {
     $lookup: {
       from: "users",
-      let: { authorId: "$authorObjectId" },  // define variable from local document
+      let: { authorId: "$authorObjectId" },
       pipeline: [
-        { $match: { $expr: { $eq: ["$_id", "$$authorId"] } } },  // match by _id
-        { $project: { userName: 1, email: 1, role: 1,  _id: 0 } }               // include only these fields
+        { $match: { $expr: { $eq: ["$_id", "$$authorId"] } } },
+        { $project: { userName: 1, email: 1, role: 1, _id: 0 } }
       ],
       as: "author"
     }
   },
-    { $unwind: '$author' },       
+  { $unwind: "$author" },
+  {
+    $lookup: {
+      from: "comments",
+      let: { postId: "$_id" },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: [
+                "$$postId",
+                {
+                  $convert: {
+                    input: "$postId",
+                    to: "objectId",
+                    onError: null,
+                    onNull: null
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      as: "comments"
+    }
+  },
+  {
+    $addFields: {
+      commentCount: { $size: "$comments" }
+    }
+  },
+  {
+    $sort: { order: sort === "asc" ? 1 : -1 }
+  },
+  {
+    $skip: (page - 1) * limit
+  },
+  {
+    $limit: limit
+  }
+]);
 
-    {
-      $lookup: {
-        from: 'comments',
-        localField: '_id',
-        foreignField: 'postId',
-        as: 'comments',
-      },
-    },
-    
-    {
-      $addFields: {
-        commentCount: { $size: '$comments' },
-      },
-    },
-
-    {
-        $skip: (page - 1) * limit
-    },
-
-    {
-         $limit: limit
-    },
-
-    { $sort: {
-           order: sort === "asc" ? 1: -1 }
-        },
-  ]);
-   console.log(posts);
   return posts;
 }
 
@@ -134,8 +144,7 @@ async fetchPostByUserId(userId: string):Promise <PostDocument [] | null> {
          $match: {
               author: new mongoose.Types.ObjectId(userId)
          }
-    }]);
-    console.log("userPost", posts); 
+    }]); 
     return posts;
 }
 

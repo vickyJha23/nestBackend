@@ -149,7 +149,8 @@ async fetchPostByUserId(userId: string):Promise <PostDocument [] | null> {
 }
 
 async deletePostById(postId:string): Promise <PostDocument | null> {
-    const deletedPost = await this.postModel.findByIdAndDelete(postId);
+  const deletedPost = await this.postModel.findByIdAndDelete(postId);
+    console.log("deleted post: ", deletedPost);
     return deletedPost;
 }
 
@@ -157,6 +158,11 @@ async deletePostById(postId:string): Promise <PostDocument | null> {
         const post = await this.postModel.findByIdAndUpdate(postId, updatedData, {new: true});
         return post;
   }
+
+async getPostWithByIdWithDetails (postId: string): Promise <PostDocument | null> {
+        const post = this.postModel.findById(postId);
+        return post;
+}
 
 
     

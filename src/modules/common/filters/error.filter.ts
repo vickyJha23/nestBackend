@@ -20,6 +20,7 @@ export class AllExceptionFilter implements ExceptionFilter {
                   error = exception.name;
              }
              else if (exception instanceof Error) {
+                 console.log(exception);
                    message = exception.message;
                    error =  exception.name;
              }

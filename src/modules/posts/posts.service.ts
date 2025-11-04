@@ -1,9 +1,8 @@
-import { BadRequestException, Injectable, InternalServerErrorException, UseGuards } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException} from "@nestjs/common";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
 import { PostRepository } from "./Post.repository";
 import { CreatePostDto } from "./dto/create-post.dto";
 import mongoose, { Types } from "mongoose";
-import { AuthGuard } from "@nestjs/passport";
 import { UpdatePostDto } from "./dto/update-post.dto";
 
 
@@ -77,32 +76,55 @@ export class PostService {
             statusCode: 200
         }
     }
-
+   
     async removePost(postId: string) {
+
         const deletedPost = await this.postRepository.deletePostById(postId);
         if (!deletedPost) {
             throw new BadRequestException("No post exists with this id");
         }
 
         return {
-            message: "Post deleted successfully",
-            deletedPost,
-            status: true,
-            statusCode: 200
+            message: "Post deleted successfully"
         }
+
     }
 
-    async updatePost(postId: string, updatedData: UpdatePostDto) {
+
+
+    async updatePost(postId: string, updatedData: UpdatePostDto, file?: Express.Multer.File) {
+                
         if (!postId) {
             throw new BadRequestException("post id required");
         }
-        const post = this.postRepository.updatePostById(postId, updatedData)
+        const post = await this.postRepository.getPostWithByIdWithDetails(postId);
+        
+        if(!post) {
+            throw new BadRequestException("No post found with this id");   
+        }
+        
+        const publicId = post.publicId;
+       
+        if(publicId && file) {
+            let response = await this.cloudinaryService.deleteFromCloudinary(publicId);
+            if(response.result === "ok") {
+                response = await this.cloudinaryService.uploadImage(file);
+                post.imageUrl = response.secure_url;
+                post.publicId = response.public_id    
+            }    
+
+        }
+
+         post.title = updatedData.title;
+         post.content = updatedData.content;
+         const updatePost =  await post.save();
+
         if (!post) {
             throw new BadRequestException("No post exist with this id");
         }
         return {
             message: "Post updated successfully",
-            post,
+            updatePost,
             status: true,
             statusCode: 200
         }
@@ -138,21 +160,18 @@ export class PostService {
         }
     }
 
-    async likeAndDisLikePost(postId: string, userId: any) {
+    async toggleLike(postId: string, userId: any) {
         if (!postId || !userId) {
             throw new BadRequestException('Post ID and User ID are required');
         }
-        userId = new mongoose.Types.ObjectId(userId)
-        const post = await this.postRepository.findById(postId);
+        const post = await this.postRepository.getPostWithByIdWithDetails(postId);
         if (!post) {
             throw new BadRequestException('No such post exists');
         }
-
         const isLiked = post.likedBy.includes(userId);
-
         if (isLiked) {
             post.likes = Math.max(0, post.likes - 1);
-            post.likedBy = post.likedBy.filter(id => id !== userId);
+            post.likedBy =  post.likedBy.filter(id => id.toString() !== userId.toString());    
         } else {
             post.likes += 1;
             post.likedBy.push(userId);
@@ -162,6 +181,7 @@ export class PostService {
 
         return {
             message: isLiked ? 'Post unliked' : 'Post liked',
+            LikedFlag: !isLiked,
             likesCount: updatedPost.likes,
             likedBy: updatedPost.likedBy,
         };

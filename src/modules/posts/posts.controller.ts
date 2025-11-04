@@ -1,4 +1,4 @@
-import { Param, Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors, Delete, Query, Put } from "@nestjs/common";
+import { Param, Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors, Delete, Query, Put, Optional } from "@nestjs/common";
 import { PostService } from "./posts.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { multerOptions } from "src/configs/multer.config";
@@ -54,17 +54,19 @@ export class PostController {
       }
 
       @UseGuards(AuthGuard("jwt"))
+      @UseInterceptors(FileInterceptor("file", multerOptions))
       @Put("update-post/:postId")
-      async updatePost(@Param("postId") postId: string, @Body() postDto: UpdatePostDto) {
-            return this.postService.updatePost(postId, postDto);
+      async updatePost(@Param("postId") postId: string, @Body() postDto: UpdatePostDto,  @Optional () @UploadedFile() file ?: Express.Multer.File) {
+            console.log(postDto, "file", file);
+            return this.postService.updatePost(postId, postDto, file);
       }
+
+
       @UseGuards(AuthGuard("jwt"))
-      @Post("like/:postId/:userId")
-      async LikeAndDiLikeHandler(@Param("postId") postId: string, @Param("userId") userId: any) {
-            return await this.postService.likeAndDisLikePost(postId, userId);
+      @Post("like/:postId")
+      async toggleLike(@Param("postId") postId: string, @Req() req: AuthRequest) {
+            return await this.postService.toggleLike(postId, req.user.userId);
       }
-
-
 
 
 }
